@@ -1,0 +1,162 @@
+```{r}
+require(dplyr)
+
+```
+
+
+```{r}
+spark <- read.csv('Spark_rounds.csv')
+
+head(spark)
+```
+
+```{r}
+tail(spark)
+```
+
+```{r}
+dim(spark)
+```
+
+
+```{r}
+names(spark)
+```
+
+
+```{r}
+colSums(is.na(spark))
+
+```
+
+```{r}
+spark$company_permalink <- sapply(spark$company_permalink, toupper)
+```
+
+
+
+
+# count no of companies
+```{r}
+sum(!duplicated(spark$company_permalink))
+```
+
+
+
+# Average funding amount of venture type
+# Average funding amount of angel type
+# Average funding amount of seed type
+# Average funding amount of private equity type
+```{r}
+summarise(group_by(spark,funding_round_type),Average = mean(raised_amount_usd, na.rm = T))
+
+
+```
+
+
+
+#Considering that Spark Funds wants to invest between 5 to 15 million USD per investment round, which investment type is the most suitable for them?
+```{r}
+summarise(group_by(spark,funding_round_type),Average = mean(raised_amount_usd, na.rm = T)) %>% 
+  filter(Average > 5000000 & Average < 15000000)
+
+
+
+```
+
+
+
+
+
+
+
+# Companies Dataset
+```{r}
+
+companies_df <- read.csv("Spark_Companies.txt", sep = "\t")
+
+head(companies_df)
+
+```
+
+```{r}
+View(companies_df)
+
+dim(companies_df)
+
+```
+
+
+```{r}
+names(companies_df)
+```
+
+
+```{r}
+colSums(companies_df == "")
+
+```
+
+
+# In the companies data frame, which column can be used as the unique key for each company? Write the name of the column.
+```{r}
+sum(duplicated(companies_df$permalink))
+```
+# Ans : permalink (There is no duplicate value)
+
+
+
+```{r}
+companies_df$permalink <- sapply(companies_df$permalink, toupper)
+```
+
+
+# How many unique companies are present in the companies file?
+```{r}
+sum(! duplicated(companies_df$permalink))
+
+```
+
+
+```{r}
+
+master_frame <- merge(x = spark,y = companies_df, by.x = "company_permalink", by.y = "permalink")
+
+head(master_frame)
+
+```
+
+```{r}
+
+dim(master_frame)
+```
+# Read Countries Data
+
+```{r}
+countries_df <- read.csv("countries.csv")
+
+head(countries_df)
+```
+
+
+```{r}
+master_frame_1 <-  merge(x = master_frame, y = countries_df, by = "country_code", all.x = T)
+```
+
+
+
+```{r}
+names(master_frame_1)
+```
+
+
+
+```{r}
+contries_gb = summarise(group_by(master_frame_1,country_code,country,continent),raised_amount_usd = sum(raised_amount_usd, na.rm = T))
+```
+```{r}
+
+View(contries_gb)
+
+```
+
